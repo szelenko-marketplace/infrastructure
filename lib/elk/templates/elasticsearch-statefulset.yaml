@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ include "elk.fullname" . }}"
+  labels:
+    {{- include "elk.labels" . | nindent 4 }}
+spec:
+  serviceName: "{{ include "elk.fullname" . }}"
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "elk.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "elk.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: elasticsearch
+          image: "{{ .Values.elasticsearch.image.repository }}:{{ .Values.elasticsearch.image.tag }}"
+          imagePullPolicy: {{ .Values.elasticsearch.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.elasticsearch.httpPort }}
+              name: http
+          resources:
+            {{- toYaml .Values.elasticsearch.resources | nindent 12 }}
+
+          env:
+                      {{- toYaml .Values.elasticsearch.env | nindent 12 }}
+            - name: ES_JAVA_OPTS
+              value: "-Xms1g -Xmx1g"          # обмежуємо heap, щоб не вбивало под
+            - name: bootstrap.memory_lock
+              value: "false"                  # для hostPath часто потрібно
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+
+      volumes:
+        - name: data
+          {{- if .Values.elasticsearch.persistence.enabled }}
+          hostPath:
+            path: {{ .Values.elasticsearch.persistence.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

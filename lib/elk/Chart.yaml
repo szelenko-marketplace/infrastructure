@@ -1,0 +1,6 @@
+apiVersion: v2
+name: elk
+description: Custom simple ELK stack (Elasticsearch + Kibana) for development
+type: application
+version: 0.0.1
+appVersion: "9.3.2"

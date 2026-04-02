@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ include "redis.fullname" . }}"
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+spec:
+  serviceName: "{{ include "redis.fullname" . }}"
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "redis.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "redis.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 6379
+              name: redis
+          resources:
+                  {{- toYaml .Values.resources | nindent 12 }}
+
+          command:
+            - redis-server
+
+          args:
+            - --port
+            - "6379"
+                  {{- if .Values.auth.enabled }}
+            - --requirepass
+            - {{ .Values.auth.password | quote }}
+                  {{- end }}
+            - --appendonly
+            - "yes"
+            - --maxmemory
+            - "300mb"
+            - --maxmemory-policy
+            - "allkeys-lru"
+
+          readinessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 15
+            periodSeconds: 20
+
+          volumeMounts:
+            - name: data
+              mountPath: /data
+
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          hostPath:
+            path: {{ .Values.persistence.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

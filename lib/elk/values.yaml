@@ -1,0 +1,56 @@
+elasticsearch:
+  image:
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: "9.3.2"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "4Gi"
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+  persistence:
+    enabled: true
+    size: 10Gi
+    hostPath: /docker/elasticsearch/
+  httpPort: 9200
+  env:
+    - name: discovery.type
+      value: "single-node"
+    - name: cluster.name
+      value: "online-shop-dev"
+    - name: xpack.security.enabled
+      value: "false"
+    - name: xpack.security.http.ssl.enabled
+      value: "false"
+    - name: xpack.license.self_generated.type
+      value: "basic"
+
+kibana:
+  image:
+    repository: docker.elastic.co/kibana/kibana
+    tag: "9.3.2"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+  httpPort: 5601
+  elasticsearchHosts: "http://infra-elk:9200" # Використовуйте статичне ім'я сервісу для надійності
+  env:
+    - name: ELASTICSEARCH_HOSTS
+      value: "http://infra-elk:9200"
+    - name: xpack.security.enabled
+      value: "false"
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: kibana.localhost
+        paths:
+          - path: /
+            pathType: ImplementationSpecific

@@ -1,0 +1,36 @@
+redis:
+  auth:
+    enabled: false
+  architecture: standalone
+  replica:
+    replicaCount: 0
+
+rabbitmq:
+  ingress:
+    hostName: rabbit.local
+  auth:
+    username: "admin"
+    password: "admin"
+  replicaCount: 1
+  extraPlugins: "rabbitmq_mqtt"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+elk:
+  elasticsearch:
+    persistence:
+      hostPath: /media/Data/OnlineShop/docker/elasticsearch
+  kibana:
+    resources:
+      limits:
+        memory: "4Gi"
+      requests:
+        memory: "2Gi"
+    ingress:
+      hosts:
+        - host: kibana.local
+          paths:
+            - path: /
+              pathType: ImplementationSpecific

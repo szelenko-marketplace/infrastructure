@@ -1,0 +1,11 @@
+replicaCount: 1
+extraPlugins: ""
+ingress:
+  hostName: rabbitmq.localhost
+auth:
+  username: "guest"
+  password: "guest"
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi

@@ -1,0 +1,34 @@
+image:
+  repository: redis
+  tag: "8.6-alpine"
+  pullPolicy: IfNotPresent
+
+# Автентифікація
+auth:
+  enabled: false
+  password: "secret_password"
+
+# Ресурси (для розробки)
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Persistence (зберігання даних)
+persistence:
+  enabled: false
+  size: 5Gi
+
+# Service
+service:
+  type: ClusterIP
+  port: 6379
+
+# Додаткові налаштування Redis (redis.conf)
+extraConfig: |
+  maxmemory 300mb
+  maxmemory-policy allkeys-lru
+  appendonly yes

@@ -1,0 +1,5 @@
+/.idea
+/charts/*
+/templates/*
+!/charts/.gitkeep
+!/templates/.gitkeep
